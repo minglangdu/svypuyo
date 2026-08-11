@@ -3,6 +3,7 @@ package com.bobapuyo;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -11,6 +12,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 public class GameScreen implements Screen {
     private Board board;
 
+    private final OrthographicCamera camera;
     private final AssetManager manager;
     private final SpriteBatch batch;
     private final ShapeRenderer shape;
@@ -32,6 +34,8 @@ public class GameScreen implements Screen {
     }
     private void draw() {
         ScreenUtils.clear(new Color(245f/255f, 208f/255f, 132f/255f, 1f));
+        shape.setProjectionMatrix(camera.combined);
+        batch.setProjectionMatrix(camera.combined);
         batch.begin();
         board.draw(batch, shape);
         batch.end();
@@ -66,9 +70,10 @@ public class GameScreen implements Screen {
         // Destroy screen's assets here.
     }
 
-    public GameScreen(AssetManager manager, SpriteBatch batch, ShapeRenderer shape) {
+    public GameScreen(AssetManager manager, SpriteBatch batch, ShapeRenderer shape, OrthographicCamera camera) {
         this.manager = manager;
         this.batch = batch;
         this.shape = shape;
+        this.camera = camera;
     }
 }

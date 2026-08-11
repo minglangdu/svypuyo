@@ -2,6 +2,7 @@ package com.bobapuyo;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -15,6 +16,7 @@ public class Main extends Game {
     public AssetManager manager;
 
     public FitViewport viewport;
+    public OrthographicCamera camera;
 
     public TextureRegion[] colors;  // weird hack, replace
 
@@ -29,9 +31,17 @@ public class Main extends Game {
         manager.load("green.png", Texture.class);
         manager.finishLoading();
 
-        viewport = new FitViewport(510, 480);
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(510, 640, camera);
+        viewport.apply();
+        camera.position.set(510/2, 640/2, 0);
 
-        setScreen(new GameScreen(manager, batch, shape));
+        setScreen(new GameScreen(manager, batch, shape, camera));
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height, true); // true centers the camera
     }
 
     @Override

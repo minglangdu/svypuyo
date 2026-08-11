@@ -115,9 +115,14 @@ public class Board {
     public void draw(SpriteBatch batch, ShapeRenderer shape) {
         // draw sides
         batch.end();
-        shape.begin(ShapeRenderer.ShapeType.Line);
+        shape.begin(ShapeRenderer.ShapeType.Filled);
         shape.setColor(new Color(0.0f, 0.0f, 0.0f, 1.0f));
-        shape.rect(x, y, Constants.CELL_SIZE * Constants.WIDTH, Constants.CELL_SIZE * Constants.HEIGHT);
+        int height = Constants.CELL_SIZE * Constants.HEIGHT, width = Constants.CELL_SIZE * Constants.WIDTH;
+        shape.rect(x - Constants.THICK, y - Constants.THICK, Constants.THICK, height + Constants.THICK);
+        shape.rect(x - Constants.THICK, y - Constants.THICK, width + Constants.THICK, Constants.WIDTH);
+        shape.rect(x + width, y - Constants.THICK, Constants.THICK, Constants.THICK + height);
+        shape.rect(x - Constants.THICK, y + height, Constants.THICK + width, Constants.THICK);
+//        shape.rect(x, y, Constants.CELL_SIZE * Constants.WIDTH, Constants.CELL_SIZE * Constants.HEIGHT);
         shape.end();
         batch.begin();
         // draw active pearls

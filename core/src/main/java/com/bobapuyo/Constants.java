@@ -14,4 +14,5 @@ public class Constants {
     final public static int CELL_SIZE = 45;
     final public static int WIDTH = 6;
     final public static int HEIGHT = 12;
+    final public static int THICK = 3;
 }
