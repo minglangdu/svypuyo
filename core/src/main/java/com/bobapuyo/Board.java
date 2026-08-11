@@ -3,6 +3,7 @@ package com.bobapuyo;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -31,11 +32,17 @@ public class Board {
             case 0:
                 // move pieces
                 if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-                    center.moveXY(new float[] {-1, 0}, pearls);
-                    side.moveXY(new float[] {-1, 0}, pearls);
+                    if (!center.moveXY(new float[] {-1, 0}, pearls)) {
+                        if (side.moveXY(new float[] {-1, 0}, pearls)) {
+                            center.moveXY(new float[] {1, 0}, pearls);
+                        }
+                    }
                 } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-                    center.moveXY(new float[] {1, 0}, pearls);
-                    side.moveXY(new float[] {1, 0}, pearls);
+                    if (!center.moveXY(new float[] {1, 0}, pearls)) {
+                        if (side.moveXY(new float[] {1, 0}, pearls)) {
+                            center.moveXY(new float[] {-1, 0}, pearls);
+                        }
+                    }
                 }
                 int newdir = dir;
                 if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
@@ -48,12 +55,15 @@ public class Board {
                     (float)Math.round(Math.sin((Math.PI / 2) * newdir) - Math.sin((Math.PI / 2) * dir))};
                 if (!side.moveXY(offset, pearls)) {
                     dir = newdir;
-                } else {
-                    System.out.println(offset[0] + ", " + offset[1]);
                 }
                 // dropping blocks
-                center.setDy(Constants.GRAVITY);
-                side.setDy(Constants.GRAVITY);
+                if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+                    center.setDy(Constants.SOFT_GRAV);
+                    side.setDy(Constants.SOFT_GRAV);
+                } else {
+                    center.setDy(Constants.GRAVITY);
+                    side.setDy(Constants.GRAVITY);
+                }
                 // check for hitting bottom
                 boolean hit = false;
                 Pearl lower, upper;
@@ -103,6 +113,13 @@ public class Board {
     }
 
     public void draw(SpriteBatch batch, ShapeRenderer shape) {
+        // draw sides
+        batch.end();
+        shape.begin(ShapeRenderer.ShapeType.Line);
+        shape.setColor(new Color(0.0f, 0.0f, 0.0f, 1.0f));
+        shape.rect(x, y, Constants.CELL_SIZE * Constants.WIDTH, Constants.CELL_SIZE * Constants.HEIGHT);
+        shape.end();
+        batch.begin();
         // draw active pearls
         for (int i = 0; i < active.size(); i ++) {
             active.get(i).draw(batch, x, y);
@@ -144,7 +161,7 @@ public class Board {
         pearlFactory = new PearlFactory(m);
         pearlTextures = new PearlTextures(m);
 
-        pearls = new int[12][6];
+        pearls = new int[Constants.HEIGHT][Constants.WIDTH];
         phase = 0;
 
         next = new ArrayList<Pearl[]> ();

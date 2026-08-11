@@ -18,7 +18,7 @@ public class GameScreen implements Screen {
     @Override
     public void show() {
         // Prepare your screen here.
-        board = new Board(50, 25, manager);
+        board = new Board(120, 25, manager);
     }
 
     @Override

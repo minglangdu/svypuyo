@@ -26,7 +26,13 @@ public class Pearl {
     public boolean moveXY(float[] c, int[][] pearls) {
         x += (int)c[0];
         y += c[1];
-        if (pearls[(int)Math.floor(y)][x] != 0) {
+        int appy = (int)Math.floor(y);
+        if (appy < 0 || appy >= Constants.HEIGHT || x < 0 || x >= Constants.WIDTH) {
+            x -= (int)c[0];
+            y -= c[1];
+            return true;
+        }
+        if (pearls[appy][x] != 0) {
             x -= (int)c[0];
             y -= c[1];
             return true;

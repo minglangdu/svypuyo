@@ -29,7 +29,7 @@ public class Main extends Game {
         manager.load("green.png", Texture.class);
         manager.finishLoading();
 
-        viewport = new FitViewport(640, 480);
+        viewport = new FitViewport(510, 480);
 
         setScreen(new GameScreen(manager, batch, shape));
     }
