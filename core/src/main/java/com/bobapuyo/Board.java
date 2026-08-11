@@ -10,7 +10,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
+import java.util.*;
 
 public class Board {
     private ArrayList<Pearl> active; // currently falling or being placed pearls
@@ -90,8 +90,30 @@ public class Board {
                 // popping groups
                 ArrayList<Vector2> pops = getPops();
                 if (pops.size() == 0) {
-                    setNext();
-                    phase = 0;
+                    if (active.size() == 0) {
+                        setNext();
+                        phase = 0;
+                    } else {
+                        phase = 2;
+                    }
+                } else {
+                    TreeMap<Integer, Integer> pcols = new TreeMap<Integer, Integer> ();
+                    for (int i = 0; i < pops.size(); i ++) {
+                        int px = (int)pops.get(i).x, py = (int)pops.get(i).y;
+                        pearls[py][px] = 0;
+                        if (!pcols.containsKey(px) || pcols.get(px) > py) {
+                            pcols.put(px, py);
+                        }
+                    }
+                    pcols.forEach((px, sy) -> {
+                        for (int py = sy + 1; py < Constants.HEIGHT; py ++) {
+                            if (pearls[py][px] != 0) {
+                                active.add(pearlFactory.spawn(px, py, pearls[py][px]));
+                                pearls[py][px] = 0;
+                            }
+                        }
+                    });
+                    phase = 2;
                 }
                 break;
             case 2:
@@ -159,7 +181,39 @@ public class Board {
     }
 
     private ArrayList<Vector2> getPops() {
-        return new ArrayList<Vector2> ();
+        ArrayList<Vector2> ans = new ArrayList<Vector2> ();
+        ArrayList<Vector2> cur = new ArrayList<Vector2> ();
+        boolean[][] visited = new boolean[Constants.HEIGHT][Constants.WIDTH];
+        for (int i = 0; i < Constants.HEIGHT; i ++) {
+            for (int j = 0; j < Constants.WIDTH; j ++) {
+                if (pearls[i][j] == 0 || visited[i][j]) {
+                    continue;
+                }
+                ArrayDeque<Vector2> q = new ArrayDeque<Vector2> ();
+                q.offer(new Vector2(j, i));
+                cur.clear();
+                while (!q.isEmpty()) {
+                    Vector2 front = q.peek(); q.pop();
+                    cur.add(front);
+                    visited[(int)front.y][(int)front.x] = true;
+                    for (int d = 0; d < 4; d ++) {
+                        // in case we want puyos to connect diagonally (joke)
+                        int nx = (int)Math.round(Math.cos(d * (Math.PI / 2))) + (int)front.x;
+                        int ny = (int)Math.round(Math.sin(d * (Math.PI / 2))) + (int)front.y;
+                        if (nx < 0 || nx >= Constants.WIDTH || ny < 0 || ny >= Constants.HEIGHT) {
+                            continue;
+                        }
+                        if (!visited[ny][nx] && (pearls[ny][nx] == pearls[(int)front.y][(int)front.x])) {
+                            q.offer(new Vector2(nx, ny));
+                        }
+                    }
+                }
+                if (cur.size() >= 4) {
+                    ans.addAll(cur);
+                }
+            }
+        }
+        return ans;
     }
 
     public Board(int x, int y, AssetManager m) {
