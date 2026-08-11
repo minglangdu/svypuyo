@@ -1,5 +1,9 @@
 package com.bobapuyo;
 
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 
 import java.lang.reflect.Array;
@@ -8,6 +12,9 @@ import java.util.ArrayList;
 public class Board {
     private ArrayList<Pearl> active; // currently falling or being placed pearls
     private int[][] pearls; // already placed pearls
+    PearlFactory pearlFactory;
+    PearlTextures pearlTextures;
+
     int phase;
 
     private ArrayList<Pearl[]> next;
@@ -15,9 +22,12 @@ public class Board {
     Pearl center, side;
     int dir; // direction of side pearl
 
+    int x, y; // bottom left coords
+
     public void update() {
         switch (phase) {
             case 0:
+                boolean hit = false;
                 // dropping blocks
                 center.setDy(Constants.GRAVITY);
                 side.setDy(Constants.GRAVITY);
@@ -29,18 +39,24 @@ public class Board {
                     lower = side; upper = center;
                 }
                 if (lower.update(pearls)) {
-                    phase = 2;
+                    hit = true;
                     setPearl(lower);
+                    active.remove(lower);
                 }
                 if (upper.update(pearls)) {
-                    phase = 2;
+                    hit = true;
                     setPearl(upper);
+                    active.remove(upper);
+                }
+                if (hit) {
+                    phase = 2;
                 }
                 break;
             case 1:
                 // popping groups
                 ArrayList<Vector2> pops = getPops();
                 if (pops.size() == 0) {
+                    setNext();
                     phase = 0;
                 }
                 break;
@@ -51,10 +67,12 @@ public class Board {
                 }
                 for (int i = 0; i < active.size(); i ++) {
                     Pearl cur = active.get(i);
+                    System.out.println(cur.getColor());
+                    System.out.println(cur.getXY()[1]);
                     cur.setDy(cur.getDy() + Constants.GRAV_ACC);
                     if (cur.update(pearls)) {
                         setPearl(cur);
-                        active.remove(i);
+                        active.remove(cur);
                         i --;
                     }
                 }
@@ -62,18 +80,32 @@ public class Board {
         }
     }
 
-    public void draw() {
-
+    public void draw(SpriteBatch batch, ShapeRenderer shape) {
+        // draw active pearls
+        for (int i = 0; i < active.size(); i ++) {
+            active.get(i).draw(batch, x, y);
+        }
+        for (int i = 0; i < pearls.length; i ++) {
+            for (int j = 0; j < pearls[i].length; j ++) {
+                if (pearls[i][j] != 0) {
+                    batch.draw(pearlTextures.get(pearls[i][j] - 1), x + Constants.CELL_SIZE * j,
+                        y + Constants.CELL_SIZE * i, Constants.CELL_SIZE, Constants.CELL_SIZE);
+                }
+            }
+        }
     }
 
     private void setPearl(Pearl p) {
+        System.out.println("setpearl " + p.getColor());
         pearls[(int)p.getXY()[1]][(int)p.getXY()[0]] = p.getColor();
     }
 
     private Pearl[] nextPearl() {
         // first (center) on bottom
-        return new Pearl[] {new Pearl(2, 10, (int)Math.floor(Math.random() * 4)),
-        new Pearl(2, 11, (int)Math.floor(Math.random() * 4))};
+        int col1 = (int)Math.floor(Math.random() * Constants.COLORS);
+        int col2 = (int)Math.floor(Math.random() * Constants.COLORS);
+        return new Pearl[] {pearlFactory.spawn(2, 10, col1 + 1),
+        pearlFactory.spawn(2, 11, col2 + 1)};
     }
     private void setNext() {
         center = next.get(0)[0]; side = next.get(0)[1];
@@ -87,58 +119,20 @@ public class Board {
         return new ArrayList<Vector2> ();
     }
 
-    public Board() {
+    public Board(int x, int y, AssetManager m) {
+        pearlFactory = new PearlFactory(m);
+        pearlTextures = new PearlTextures(m);
+
         pearls = new int[12][6];
         phase = 0;
 
+        next = new ArrayList<Pearl[]> ();
+        active = new ArrayList<Pearl> ();
         for (int i = 0; i < Constants.NEXT_SIZE; i ++) {
             next.add(nextPearl());
         }
         setNext();
-    }
-}
 
-class Pearl {
-    private int x; private float y;
-    private float dy;
-    private int color;
-
-    public float[] getXY() {
-        return new float[] {x, y};
-    }
-    public int getColor() {
-        return color;
-    }
-    public float getDy() {
-        return dy;
-    }
-
-    public void setDy(float n) {
-        dy = n;
-    }
-
-    public float accelerate(float gravity) {
-        dy += gravity;
-        return dy;
-    }
-
-    public boolean update(int[][] pearls) {
-        boolean collision = false;
-        float ny = y - dy;
-        for (int cy = (int)Math.floor(y); cy > Math.max(ny, 0); cy --) {
-            if (pearls[cy][x] != 0) {
-                collision = true;
-                ny = cy;
-            }
-        }
-        y = ny;
-        return collision;
-    }
-
-    public Pearl(int x, int y, int c) {
-        this.x = x;
-        this.y = (float)y;
-        this.dy = 0.0f;
-        this.color = c;
+        this.x = x; this.y = y;
     }
 }

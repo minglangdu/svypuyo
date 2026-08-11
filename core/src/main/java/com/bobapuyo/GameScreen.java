@@ -1,14 +1,24 @@
 package com.bobapuyo;
 
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 /** First screen of the application. Displayed after the application is created. */
 public class GameScreen implements Screen {
+    private Board board;
+
+    private final AssetManager manager;
+    private final SpriteBatch batch;
+    private final ShapeRenderer shape;
+
     @Override
     public void show() {
         // Prepare your screen here.
+        board = new Board(50, 25, manager);
     }
 
     @Override
@@ -18,10 +28,13 @@ public class GameScreen implements Screen {
     }
 
     private void update() {
-
+        board.update();
     }
     private void draw() {
         ScreenUtils.clear(new Color(245f/255f, 208f/255f, 132f/255f, 1f));
+        batch.begin();
+        board.draw(batch, shape);
+        batch.end();
     }
 
     @Override
@@ -51,5 +64,11 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         // Destroy screen's assets here.
+    }
+
+    public GameScreen(AssetManager manager, SpriteBatch batch, ShapeRenderer shape) {
+        this.manager = manager;
+        this.batch = batch;
+        this.shape = shape;
     }
 }
