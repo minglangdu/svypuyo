@@ -23,6 +23,16 @@ public class Pearl {
     public void setDy(float n) {
         dy = n;
     }
+    public boolean moveXY(float[] c, int[][] pearls) {
+        x += (int)c[0];
+        y += c[1];
+        if (pearls[(int)Math.floor(y)][x] != 0) {
+            x -= (int)c[0];
+            y -= c[1];
+            return true;
+        }
+        return false;
+    }
 
     public float accelerate(float gravity) {
         dy += gravity;

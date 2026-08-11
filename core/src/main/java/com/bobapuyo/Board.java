@@ -1,5 +1,7 @@
 package com.bobapuyo;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -27,11 +29,33 @@ public class Board {
     public void update() {
         switch (phase) {
             case 0:
-                boolean hit = false;
+                // move pieces
+                if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
+                    center.moveXY(new float[] {-1, 0}, pearls);
+                    side.moveXY(new float[] {-1, 0}, pearls);
+                } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
+                    center.moveXY(new float[] {1, 0}, pearls);
+                    side.moveXY(new float[] {1, 0}, pearls);
+                }
+                int newdir = dir;
+                if (Gdx.input.isKeyJustPressed(Input.Keys.UP)) {
+                    newdir += 3; // clockwise
+                } else if (Gdx.input.isKeyJustPressed(Input.Keys.Z)) {
+                    newdir ++; // counterclockwise
+                }
+                newdir %= 4;
+                float[] offset = {(float)Math.round(Math.cos((Math.PI / 2) * newdir) - Math.cos((Math.PI / 2) * dir)),
+                    (float)Math.round(Math.sin((Math.PI / 2) * newdir) - Math.sin((Math.PI / 2) * dir))};
+                if (!side.moveXY(offset, pearls)) {
+                    dir = newdir;
+                } else {
+                    System.out.println(offset[0] + ", " + offset[1]);
+                }
                 // dropping blocks
                 center.setDy(Constants.GRAVITY);
                 side.setDy(Constants.GRAVITY);
                 // check for hitting bottom
+                boolean hit = false;
                 Pearl lower, upper;
                 if (center.getXY()[1] < side.getXY()[1]) {
                     lower = center; upper = side;
@@ -67,8 +91,6 @@ public class Board {
                 }
                 for (int i = 0; i < active.size(); i ++) {
                     Pearl cur = active.get(i);
-                    System.out.println(cur.getColor());
-                    System.out.println(cur.getXY()[1]);
                     cur.setDy(cur.getDy() + Constants.GRAV_ACC);
                     if (cur.update(pearls)) {
                         setPearl(cur);
@@ -96,7 +118,6 @@ public class Board {
     }
 
     private void setPearl(Pearl p) {
-        System.out.println("setpearl " + p.getColor());
         pearls[(int)p.getXY()[1]][(int)p.getXY()[0]] = p.getColor();
     }
 
@@ -109,7 +130,7 @@ public class Board {
     }
     private void setNext() {
         center = next.get(0)[0]; side = next.get(0)[1];
-        dir = 0; // side on top -> 0
+        dir = 1; // side on top -> 1
         active.add(center); active.add(side);
         next.remove(0);
         next.add(nextPearl());
