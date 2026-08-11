@@ -32,10 +32,10 @@ public class Pearl {
     public boolean update(int[][] pearls) {
         boolean collision = false;
         float ny = y - dy;
-        for (int cy = (int)Math.floor(y); cy >= Math.max(ny, 0); cy --) {
-            if (pearls[cy][x] != 0) {
+        for (int cy = (int)Math.floor(y); cy > Math.max(ny, 0); cy --) {
+            if (pearls[cy - 1][x] != 0) {
                 collision = true;
-                ny = cy + 1;
+                ny = cy;
                 break;
             }
         }
